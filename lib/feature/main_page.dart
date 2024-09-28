@@ -56,7 +56,7 @@ class _MainPageState extends State<MainPage> {
                   // bottom navigation bar.
                   path: '/home',
                   builder: (BuildContext context, GoRouterState state) =>
-                      const HomePage()),
+                       HomePage()),
             ],
           ),
           StatefulShellBranch(routes: <RouteBase>[
