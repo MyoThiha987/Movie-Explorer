@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_architecture/feature/favourite/favourite_page.dart';
 import 'package:flutter_architecture/feature/home/home_page.dart';
@@ -12,9 +13,6 @@ final GlobalKey<NavigatorState> _rootNavigatorKey =
 final GlobalKey<NavigatorState> _sectionANavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'sectionANav');
 
-/*final GlobalKey<NavigatorState> _sectionANavigatorKey =
-GlobalKey<NavigatorState>(debugLabel: 'favourite');*/
-
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
@@ -28,12 +26,12 @@ class _MainPageState extends State<MainPage> {
     initialLocation: '/home',
     routes: <RouteBase>[
       GoRoute(
-// The screen to display as the root in the second tab of the
-// bottom navigation bar.
-        path: '/detail',
-        builder: (BuildContext context, GoRouterState state) =>
-            const MovieDetailsPage(),
-      ),
+          name: "detail",
+          // The screen to display as the root in the second tab of the
+          // bottom navigation bar.
+          path: '/detail',
+          builder: (BuildContext context, GoRouterState state) =>
+              MovieDetailsPage(movieId: state.uri.queryParameters['movieId']!)),
       // #docregion configuration-builder
       StatefulShellRoute.indexedStack(
         builder: (BuildContext context, GoRouterState state,
@@ -56,7 +54,7 @@ class _MainPageState extends State<MainPage> {
                   // bottom navigation bar.
                   path: '/home',
                   builder: (BuildContext context, GoRouterState state) =>
-                       HomePage()),
+                      const HomePage()),
             ],
           ),
           StatefulShellBranch(routes: <RouteBase>[
@@ -88,6 +86,7 @@ class _MainPageState extends State<MainPage> {
       routerConfig: _router,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        fontFamily: 'Lora',
         splashColor: Colors.transparent,
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
@@ -106,24 +105,6 @@ class ScaffoldWithNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Movies'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: CircleAvatar(
-              backgroundColor: Colors.black.withOpacity(0.1),
-              radius: 24,
-              child: IconButton(
-                iconSize: 24,
-                onPressed: () {},
-                icon: const Icon(Icons.search),
-                color: Colors.black,
-              ),
-            ),
-          )
-        ],
-      ),
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,

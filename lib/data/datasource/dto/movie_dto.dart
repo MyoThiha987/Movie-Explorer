@@ -9,12 +9,21 @@ class MovieDto {
   String? overview;
   double? popularity;
   String? poster_path;
+  String? backdrop_path;
   String? release_date;
   double? vote_average;
   int? vote_count;
 
-  MovieDto(this.id, this.original_title, this.overview, this.popularity,
-      this.release_date, this.poster_path, this.vote_average, this.vote_count);
+  MovieDto(
+      this.id,
+      this.original_title,
+      this.overview,
+      this.popularity,
+      this.release_date,
+      this.poster_path,
+      this.backdrop_path,
+      this.vote_average,
+      this.vote_count);
 
   factory MovieDto.fromJson(Map<String, dynamic> json) =>
       _$MovieDtoFromJson(json);
