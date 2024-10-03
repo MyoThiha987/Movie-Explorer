@@ -19,8 +19,6 @@ class HomePage extends ConsumerWidget {
     final moviesAsyncValue = ref.watch(fetchPopularMoviesProvider(unit));
     final localMoviesAsyncValue = ref.watch((fetchLocalMoviesProvider(unit)));
 
-    //print("${moviesAsyncValue.value}");
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -36,7 +34,9 @@ class HomePage extends ConsumerWidget {
               radius: 20,
               child: IconButton(
                 iconSize: 24,
-                onPressed: () {},
+                onPressed: () {
+                  GoRouter.of(context).pushNamed('search');
+                },
                 icon: const Icon(Icons.search),
                 color: Colors.black,
               ),
@@ -155,7 +155,7 @@ Widget nowPlayingMoviesView(
           child: ListView.builder(
             padding: const EdgeInsets.only(left: 12, right: 12),
             scrollDirection: Axis.horizontal,
-            itemCount: 1,
+            itemCount: movies.length,
             itemBuilder: (context, index) {
               final movie = movies[index];
               return smallMovieItemView(context, movie);
@@ -195,7 +195,7 @@ Widget topRatedMoviesView(
           child: ListView.builder(
             padding: const EdgeInsets.only(left: 12, right: 12),
             scrollDirection: Axis.horizontal,
-            itemCount: 3,
+            itemCount: movies.length,
             itemBuilder: (context, index) {
               final movie = movies[index];
               return largeMovieItemView(context, movie);
@@ -235,7 +235,7 @@ Widget popularMoviesView(
           child: ListView.builder(
             padding: const EdgeInsets.only(left: 12, right: 12),
             scrollDirection: Axis.horizontal,
-            itemCount: 3,
+            itemCount: movies.length,
             itemBuilder: (context, index) {
               final movie = movies[index];
               return mediumMovieItemView(context, movie);
@@ -265,10 +265,10 @@ Widget smallMovieItemView(BuildContext context, Movie movie) {
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child:  CachedNetworkImage(
-                  // placeholder: (context, url) => const AspectRatio(
-                  //   aspectRatio: 1.6,
-                  //   child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
-                  // ),
+                  placeholder: (context, url) => const AspectRatio(
+                    aspectRatio: 1.6,
+                    child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
+                  ),
                   imageUrl:
                       "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
                   fit: BoxFit.cover,
@@ -325,10 +325,10 @@ Widget largeMovieItemView(BuildContext context, Movie movie) {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: CachedNetworkImage(
-              // placeholder: (context, url) => const AspectRatio(
-              //   aspectRatio: 1.6,
-              //   child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
-              // ),
+              placeholder: (context, url) => const AspectRatio(
+                aspectRatio: 1.6,
+                child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
+              ),
               imageUrl:
                   "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
               fit: BoxFit.cover,
@@ -372,10 +372,10 @@ Widget mediumMovieItemView(BuildContext context, Movie movie) {
             borderRadius: BorderRadius.circular(12),
             child: CachedNetworkImage(
 
-              // placeholder: (context, url) => const AspectRatio(
-              //   aspectRatio: 1.6,
-              //   child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
-              // ),
+              placeholder: (context, url) => const AspectRatio(
+                aspectRatio: 1.6,
+                child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
+              ),
               imageUrl:
                   "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
               fit: BoxFit.cover,
@@ -396,4 +396,14 @@ Widget mediumMovieItemView(BuildContext context, Movie movie) {
       ),
     ),
   );
+}
+
+class CustomImageCache extends WidgetsFlutterBinding {
+  @override
+  ImageCache createImageCache() {
+    ImageCache imageCache = super.createImageCache();
+    // Set your image cache size
+    imageCache.maximumSizeBytes = 1024 * 1024 * 100; // 100 MB
+    return imageCache;
+  }
 }

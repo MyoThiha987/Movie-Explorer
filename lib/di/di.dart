@@ -15,6 +15,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 
 import '../data/datasource/network/network_source/network_datasource_impl.dart';
 import '../domain/usecase/fetch_movie_details_usecase.dart';
+import '../domain/usecase/search_movies_usecase.dart';
 
 GetIt instance = GetIt.instance;
 
@@ -42,8 +43,11 @@ Future<void> initAppModule() async {
       () => SyncMovieUseCase(instance()));
 
   instance.registerLazySingleton<FetchMoviesUseCase>(
-          () => FetchMoviesUseCase(instance()));
+      () => FetchMoviesUseCase(instance()));
 
   instance.registerLazySingleton<FetchMovieDetailsUseCase>(
       () => FetchMovieDetailsUseCase(instance()));
+
+  instance.registerLazySingleton<SearchMoviesUseCase>(
+      () => SearchMoviesUseCase(instance()));
 }

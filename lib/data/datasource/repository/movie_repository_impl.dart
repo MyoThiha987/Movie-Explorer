@@ -27,14 +27,13 @@ class MovieRepositoryImpl extends MovieRepository {
         final nowPlaying = await networkDataSource.getNowPlayingMovies();
         final popular = await networkDataSource.getPopularMovies();
 
-
         final u = upcoming.map((movieDto) => movieDto.toEntity(0)).toList();
         final t = topRated.map((movieDto) => movieDto.toEntity(1)).toList();
         final n = nowPlaying.map((movieDto) => movieDto.toEntity(2)).toList();
         final p = popular.map((movieDto) => movieDto.toEntity(3)).toList();
         final result = u + t + n + p;
-        print("Netwrok : ${u.first.originalTitle} ${t.first.originalTitle} ${n.first.originalTitle} ${p.first.originalTitle}");
-
+        print(
+            "Netwrok : ${u.first.originalTitle} ${t.first.originalTitle} ${n.first.originalTitle} ${p.first.originalTitle}");
 
         localDataSource.insertMovies(result);
         return Success(data: true);
@@ -70,5 +69,21 @@ class MovieRepositoryImpl extends MovieRepository {
       popularMovies: movies.where((movie) => movie.movieType == 3).toList(),
       upcomingMovies: movies.where((movie) => movie.movieType == 0).toList(),
     );
+  }
+
+  @override
+  Future<Resource<List<Movie>>> searchMovies(int page, String query) async {
+    if (await connectionChecker.isConnected) {
+      try {
+        final response = await networkDataSource.searchMovies(page, query);
+        final searchMovies =
+            response.map((movieDto) => movieDto.toDomain(0)).toList();
+        return Success(data: searchMovies);
+      } catch (error) {
+        return Error(error: ExceptionHandler.handle(error).errorBody);
+      }
+    } else {
+      return Error(error: ErrorType.NO_INTERNET_CONNECTION.getError());
+    }
   }
 }

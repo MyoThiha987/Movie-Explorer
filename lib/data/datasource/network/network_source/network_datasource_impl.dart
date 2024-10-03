@@ -42,4 +42,11 @@ class NetworkDatasourceImpl extends NetworkDatasource {
     final List<MovieDto> upcoming = upcomingResponse.data.results ?? [];
     return upcoming;
   }
+
+  @override
+  Future<List<MovieDto>> searchMovies(int page, String query) async {
+    final searchResponse = await service.searchMovies(query, "en", page);
+    final List<MovieDto> searchMovies = searchResponse.data.results ?? [];
+    return searchMovies;
+  }
 }

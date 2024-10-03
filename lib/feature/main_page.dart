@@ -1,7 +1,8 @@
-
+import 'package:chucker_flutter/chucker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_architecture/feature/favourite/favourite_page.dart';
 import 'package:flutter_architecture/feature/home/home_page.dart';
+import 'package:flutter_architecture/feature/search/search_page.dart';
 import 'package:flutter_architecture/feature/settings/setting_page.dart';
 import 'package:go_router/go_router.dart';
 
@@ -13,6 +14,12 @@ final GlobalKey<NavigatorState> _rootNavigatorKey =
 final GlobalKey<NavigatorState> _sectionANavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'sectionANav');
 
+final GlobalKey<NavigatorState> _fav =
+    GlobalKey<NavigatorState>(debugLabel: 'fav');
+
+final GlobalKey<NavigatorState> _set =
+    GlobalKey<NavigatorState>(debugLabel: 'sett');
+
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
@@ -22,6 +29,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final GoRouter _router = GoRouter(
+    //observers: [ChuckerFlutter.navigatorObserver],
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/home',
     routes: <RouteBase>[
@@ -32,6 +40,12 @@ class _MainPageState extends State<MainPage> {
           path: '/detail',
           builder: (BuildContext context, GoRouterState state) =>
               MovieDetailsPage(movieId: state.uri.queryParameters['movieId']!)),
+      GoRoute(
+          name: "search",
+          // The screen to display as the root in the second tab of the
+          // bottom navigation bar.
+          path: '/search',
+          builder: (BuildContext context, GoRouterState state) => SearchPage()),
       // #docregion configuration-builder
       StatefulShellRoute.indexedStack(
         builder: (BuildContext context, GoRouterState state,
@@ -57,7 +71,7 @@ class _MainPageState extends State<MainPage> {
                       const HomePage()),
             ],
           ),
-          StatefulShellBranch(routes: <RouteBase>[
+          StatefulShellBranch(navigatorKey: _fav, routes: <RouteBase>[
             GoRoute(
               // The screen to display as the root in the second tab of the
               // bottom navigation bar.
@@ -66,7 +80,7 @@ class _MainPageState extends State<MainPage> {
                   const FavouritePage(),
             ),
           ]),
-          StatefulShellBranch(routes: <RouteBase>[
+          StatefulShellBranch(navigatorKey: _set, routes: <RouteBase>[
             GoRoute(
               // The screen to display as the root in the third tab of the
               // bottom navigation bar.

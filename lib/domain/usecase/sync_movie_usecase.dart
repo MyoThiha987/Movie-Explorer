@@ -9,7 +9,7 @@ class SyncMovieUseCase extends BaseUseCase<Unit, bool> {
   SyncMovieUseCase(this.repository);
 
   @override
-  Future<Resource<bool>> execute(Unit input) {
-    return repository.syncHomeMovies();
+  Future<Resource<bool>> execute(Unit input) async {
+    return await repository.syncHomeMovies();
   }
 }

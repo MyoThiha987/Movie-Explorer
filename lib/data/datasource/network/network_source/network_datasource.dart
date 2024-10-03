@@ -8,4 +8,5 @@ abstract class NetworkDatasource{
   Future<List<MovieDto>> getTopRatedMovies();
   Future<List<MovieDto>> getPopularMovies();
   Future<MovieDetailsResponseDto> getMovieDetails(int movieId);
+  Future<List<MovieDto>> searchMovies(int page,String query);
 }

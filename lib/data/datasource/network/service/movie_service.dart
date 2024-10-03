@@ -32,4 +32,10 @@ abstract class MovieService {
       @Path("id") int id,
       @Query("language") String? language,
       @Query("page") int? page);
+
+  @GET('/3/search/movie')
+  Future<HttpResponse<MovieResponseDto>> searchMovies(
+      @Query("query") String? query,
+      @Query("language") String? language,
+      @Query("page") int? page);
 }

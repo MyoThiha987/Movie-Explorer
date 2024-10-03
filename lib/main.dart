@@ -15,11 +15,3 @@ void main() async {
   await Hive.openBox<MovieEntity>("movies");
   runApp(const ProviderScope(child: MainPage()));
 }
-
-/*Future openBox() async {
-  return Future.wait([
-    Hive.openBox<MovieEntity>("movies"),
-  ]).then((value) {
-    //after 6 second
-  });
-}*/

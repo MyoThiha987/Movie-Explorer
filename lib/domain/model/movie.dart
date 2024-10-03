@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 class Movie {
   int id;
   String originalTitle;
@@ -47,4 +49,14 @@ class Failure implements Exception {
   }
 
   Failure({required this.message});
+}
+
+class SearchMovieRequestParams extends Equatable {
+  final int page;
+  final String query;
+  const SearchMovieRequestParams({required this.page, required this.query});
+
+  @override
+  // TODO: implement props
+  List<Object?> get props => [page, query];
 }
