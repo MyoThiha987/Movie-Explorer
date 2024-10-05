@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_architecture/core/network/connection_checker.dart';
 import 'package:flutter_architecture/data/datasource/local/local_source/movie_local_datasource.dart';
 import 'package:flutter_architecture/data/datasource/local/local_source/movie_local_datasource_impl.dart';
@@ -12,6 +13,7 @@ import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/datasource/network/network_source/network_datasource_impl.dart';
 import '../domain/usecase/fetch_movie_details_usecase.dart';
@@ -20,6 +22,10 @@ import '../domain/usecase/search_movies_usecase.dart';
 GetIt instance = GetIt.instance;
 
 Future<void> initAppModule() async {
+
+  instance.registerLazySingletonAsync<SharedPreferences>(
+      () => SharedPreferences.getInstance());
+
   instance.registerLazySingleton<DioFactory>(() => DioFactory());
   final dio = await instance<DioFactory>().provideDio();
 

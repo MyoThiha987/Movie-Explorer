@@ -1,9 +1,12 @@
-import 'package:chucker_flutter/chucker_flutter.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_architecture/feature/favourite/favourite_page.dart';
 import 'package:flutter_architecture/feature/home/home_page.dart';
+import 'package:flutter_architecture/feature/providers/switch_theme_provider.dart';
 import 'package:flutter_architecture/feature/search/search_page.dart';
 import 'package:flutter_architecture/feature/settings/setting_page.dart';
+import 'package:flutter_architecture/feature/theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'details/movie_details_page.dart';
@@ -20,16 +23,15 @@ final GlobalKey<NavigatorState> _fav =
 final GlobalKey<NavigatorState> _set =
     GlobalKey<NavigatorState>(debugLabel: 'sett');
 
-class MainPage extends StatefulWidget {
+class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
 
   @override
-  State<MainPage> createState() => _MainPageState();
+  ConsumerState<MainPage> createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState extends ConsumerState<MainPage> {
   final GoRouter _router = GoRouter(
-    //observers: [ChuckerFlutter.navigatorObserver],
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/home',
     routes: <RouteBase>[
@@ -94,17 +96,21 @@ class _MainPageState extends State<MainPage> {
     ],
   );
 
+
   @override
   Widget build(BuildContext context) {
+    MaterialTheme theme = MaterialTheme(createTextTheme(context, "Lora", "Lora"));
+    final themeMode = ref.watch(switchThemeProviderProvider);
     return MaterialApp.router(
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
+      themeAnimationStyle: AnimationStyle(curve: Curves.easeIn,duration: Duration(milliseconds: 300)),
+      themeMode: themeMode,
+      darkTheme: theme.dark(),
       routerConfig: _router,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Lora',
-        splashColor: Colors.transparent,
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-      ),
+      theme: theme.light(),
       //home: const MainPage(),
     );
   }
@@ -126,13 +132,13 @@ class ScaffoldWithNavBar extends StatelessWidget {
         onDestinationSelected: (index) {
           navigationShell.goBranch(
             index,
-            // initialLocation: index == navigationShell.currentIndex,
+            initialLocation: index == navigationShell.currentIndex,
           );
         },
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home), label: "Home"),
-          NavigationDestination(icon: Icon(Icons.favorite), label: "Favourite"),
-          NavigationDestination(icon: Icon(Icons.settings), label: "Setting"),
+        destinations:  [
+          NavigationDestination(icon: Icon(Icons.home), label: context.tr('home')),
+          NavigationDestination(icon: Icon(Icons.favorite), label: context.tr('favourite')),
+          NavigationDestination(icon: Icon(Icons.settings), label: context.tr('setting')),
         ],
       ),
     );

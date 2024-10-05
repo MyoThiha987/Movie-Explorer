@@ -1,0 +1,20 @@
+{
+  "title": "Movies",
+  "home": "Home",
+  "favourite": "Favourite",
+  "setting": "Setting",
+  "label_search": "Search Movies",
+  "hint_search": "Enter movie name",
+  "label_now_playing_movies": "Now Playing Movies",
+  "label_top_rate_movies": "Top Rated Movies",
+  "label_popular_movies": "Popular Movies",
+  "label_view_all": "View All",
+  "label_favourite_movies": "Favourite Movies",
+  "label_day_nigh_mode": "Day/Night Mode",
+  "label_language": "Language",
+  "english": "English",
+  "myanmar": "Myanmar",
+  "day": "Day",
+  "night": "Night",
+  "system": "System"
+}

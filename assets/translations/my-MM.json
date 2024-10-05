@@ -1,0 +1,20 @@
+{
+  "title": "ဇာတ်ကားများ",
+  "home": "မူလနေရာ",
+  "favourite": "ကြိုက်နှစ်သက်ရာ",
+  "setting": "အပြင်အဆင်",
+  "label_search": "ဇာတ်ကားများရှာရန်",
+  "hint_search": "ဇာတ်ကားနာမည်ထည့်ရန်",
+  "label_now_playing_movies": "ယခုပြသနေသော ဇာတ်ကားများ",
+  "label_top_rate_movies": "လူကြည့်များသော ဇာတ်ကားများ",
+  "label_popular_movies": "လူကြိုက်များသော ဇာတ်ကားများ",
+  "label_view_all": "အားလုံးကြည့်ရန်",
+  "label_favourite_movies": "ကြိုက်နှစ်သက်သော ဇာတ်ကားများ",
+  "label_day_nigh_mode": "နေ့ညစနစ်",
+  "label_language": "ဘာသာစကား",
+  "english": "အင်္ဂလိပ်",
+  "myanmar": "မြန်မာ",
+  "day": "နေ့",
+  "night": "ည",
+  "system": "အလိုအလျောက်"
+}

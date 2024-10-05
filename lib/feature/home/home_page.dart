@@ -2,8 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_options.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dartz/dartz.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_architecture/feature/providers/fetch_local_movies_usecase_provider.dart';
+import 'package:flutter_architecture/feature/providers/switch_theme_provider.dart';
 import 'package:flutter_architecture/feature/providers/sync_movie_usecase_provider.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,37 +20,62 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final moviesAsyncValue = ref.watch(fetchPopularMoviesProvider(unit));
     final localMoviesAsyncValue = ref.watch((fetchLocalMoviesProvider(unit)));
+    final theme = ref.watch(switchThemeProviderProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Movies',
-          style: TextStyle(
-              fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
+        title: Text(context.tr('title'),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: CircleAvatar(
-              backgroundColor: Colors.black.withOpacity(0.1),
               radius: 20,
               child: IconButton(
                 iconSize: 24,
                 onPressed: () {
-                  GoRouter.of(context).pushNamed('search');
+                  final themeMode = theme == ThemeMode.light
+                      ? ThemeMode.dark
+                      : ThemeMode.light;
+                  ref
+                      .read(switchThemeProviderProvider.notifier)
+                      .updateThemeMode(themeMode);
                 },
-                icon: const Icon(Icons.search),
-                color: Colors.black,
+                icon: const Icon(Icons.light_mode),
               ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: CircleAvatar(
+              radius: 20,
+              child: IconButton(
+                  iconSize: 24,
+                  onPressed: () {
+                    GoRouter.of(context).pushNamed('search');
+                  },
+                  icon: const Icon(Icons.search)),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: CircleAvatar(
+              radius: 20,
+              child: IconButton(
+                  iconSize: 24,
+                  onPressed: () {
+                    context.locale.languageCode == "en"
+                        ? context.setLocale(const Locale('my', 'MM'))
+                        : context.setLocale(const Locale('en', 'US'));
+                  },
+                  icon: const Icon(Icons.language)),
             ),
           )
         ],
       ),
       body: moviesAsyncValue.when(data: (isSuccess) {
-        print("Success $isSuccess");
         return movieListView(context, isSuccess, localMoviesAsyncValue.value);
       }, error: (error, _) {
-        print("$error");
         return movieListView(context, false, localMoviesAsyncValue.value);
         /*return Center(
               child: Text('$error'),
@@ -98,31 +125,34 @@ Widget movieListView(BuildContext context, bool isSuccess, HomeMovies? movies) {
         const SizedBox(
           height: 16,
         ),
-        nowPlayingMoviesView(
-            context, movies?.nowPlayingMovies ?? [], "Now Playing Movies"),
-        topRatedMoviesView(
-            context, movies?.topRatedMovies ?? [], "Top Rated Movies"),
-        popularMoviesView(
-            context, movies?.popularMovies ?? [], "Popular Movies")
+        nowPlayingMoviesView(context, movies?.nowPlayingMovies ?? [],
+            context.tr('label_now_playing_movies')),
+        topRatedMoviesView(context, movies?.topRatedMovies ?? [],
+            context.tr('label_top_rate_movies')),
+        popularMoviesView(context, movies?.popularMovies ?? [],
+            context.tr('label_popular_movies'))
       ],
     ),
   );
 }
 
 Widget carouselMovieView(BuildContext context, List<Movie> movies) {
-  return CarouselSlider(
-    items: carouselView(context, movies),
-    options: CarouselOptions(
-      reverse: false,
-      initialPage: 0,
-      enlargeStrategy: CenterPageEnlargeStrategy.scale,
-      height: MediaQuery.of(context).size.height / 3.5,
-      enableInfiniteScroll: false,
-      autoPlay: false,
-      viewportFraction: 0.8,
-      enlargeCenterPage: true,
-      enlargeFactor: 0.2,
-      pageSnapping: true,
+  return Padding(
+    padding: EdgeInsets.only(top: 12),
+    child: CarouselSlider(
+      items: carouselView(context, movies),
+      options: CarouselOptions(
+        reverse: false,
+        initialPage: 0,
+        enlargeStrategy: CenterPageEnlargeStrategy.scale,
+        height: MediaQuery.of(context).size.height / 3.5,
+        enableInfiniteScroll: false,
+        autoPlay: false,
+        viewportFraction: 0.8,
+        enlargeCenterPage: true,
+        enlargeFactor: 0.2,
+        pageSnapping: true,
+      ),
     ),
   );
 }
@@ -141,13 +171,16 @@ Widget nowPlayingMoviesView(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  category,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 18),
+                Expanded(
+                  child: Text(
+                    category,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                 ),
-                const Text('View all',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))
+                Text(context.tr('label_view_all'),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16))
               ]),
         ),
         SizedBox(
@@ -181,13 +214,16 @@ Widget topRatedMoviesView(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  category,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 18),
+                Expanded(
+                  child: Text(
+                    category,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                 ),
-                const Text('View all',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))
+                Text(context.tr('label_view_all'),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16))
               ]),
         ),
         SizedBox(
@@ -221,13 +257,16 @@ Widget popularMoviesView(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  category,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 18),
+                Expanded(
+                  child: Text(
+                    category,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                 ),
-                const Text('View all',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))
+                Text(context.tr('label_view_all'),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16)),
               ]),
         ),
         SizedBox(
@@ -264,7 +303,7 @@ Widget smallMovieItemView(BuildContext context, Movie movie) {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child:  CachedNetworkImage(
+                child: CachedNetworkImage(
                   placeholder: (context, url) => const AspectRatio(
                     aspectRatio: 1.6,
                     child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
@@ -371,7 +410,6 @@ Widget mediumMovieItemView(BuildContext context, Movie movie) {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: CachedNetworkImage(
-
               placeholder: (context, url) => const AspectRatio(
                 aspectRatio: 1.6,
                 child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),

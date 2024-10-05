@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_architecture/domain/model/movie.dart';
 import 'package:flutter_architecture/feature/providers/search_movie_usecase_provider.dart';
@@ -23,7 +24,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-
     ref.listen(
       searchTextProvider,
       (previous, next) {
@@ -33,7 +33,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Search Movies'),
+        title: Text(context.tr('label_search')),
       ),
       body: Column(
           mainAxisSize: MainAxisSize.max,
@@ -96,9 +96,21 @@ class SearchMovieListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-        child: PagedListView<int, Movie>(
+        child: PagedGridView<int, Movie>(
+            showNewPageProgressIndicatorAsGridChild: false,
+            showNewPageErrorIndicatorAsGridChild: false,
+            showNoMoreItemsIndicatorAsGridChild: false,
             pagingController: pagingController,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              // childAspectRatio: 100 / 150,
+              //crossAxisSpacing: 0,
+              //mainAxisSpacing: 50,
+              crossAxisCount: 2,
+            ),
             builderDelegate: PagedChildBuilderDelegate<Movie>(
+              animateTransitions: true,
+              transitionDuration: const Duration(milliseconds: 500),
+
               itemBuilder: (context, item, index) => SearchMovieItemView(
                 movie: item,
               ),
@@ -115,7 +127,11 @@ class SearchMovieListView extends StatelessWidget {
                   child: Center(
                     child: CircularProgressIndicator(),
                   )),
-              //noItemsFoundIndicatorBuilder: (_) => NoItemsFoundIndicator(),
+              noItemsFoundIndicatorBuilder: (_) => const SizedBox(
+                  width: double.infinity,
+                  child: Center(
+                    child: Text("There is no data to show up this time"),
+                  )),
               //noMoreItemsIndicatorBuilder: (_) => NoMoreItemsIndicator(),
             )));
   }
@@ -131,27 +147,39 @@ class SearchMovieItemView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
-      Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: CachedNetworkImage(
-            fadeInDuration: const Duration(milliseconds: 50), // Helps with smooth rendering
-            fadeOutDuration: const Duration(milliseconds: 50),
-            placeholder: (context, url) => const AspectRatio(
-              aspectRatio: 1.2,
-              child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
+    return Column(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: CachedNetworkImage(
+                fadeInDuration: const Duration(milliseconds: 50),
+                // Helps with smooth rendering
+                fadeOutDuration: const Duration(milliseconds: 50),
+                placeholder: (context, url) => const AspectRatio(
+                  aspectRatio: 1.2,
+                  child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
+                ),
+                imageUrl:
+                    "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
+                fit: BoxFit.cover,
+                width: MediaQuery.of(context).size.width,
+                height: 100,
+              ),
             ),
-            imageUrl:
-                "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
-            fit: BoxFit.cover,
-            width: MediaQuery.of(context).size.width / 3,
-            height: 100,
           ),
         ),
-      )
-    ]);
+        Padding(
+          padding: const EdgeInsets.only(left: 12.0, right: 12.0),
+          child: Text(
+            movie.originalTitle,
+            maxLines: 1,
+          ),
+        )
+      ],
+    );
   }
 }
 
@@ -180,9 +208,8 @@ class MovieSearchBar extends ConsumerWidget {
             },
             keyboardType: TextInputType.text,
             decoration: InputDecoration(
-              hintText: 'Enter rabbit number',
+              hintText: context.tr('hint_search'),
               filled: true,
-              fillColor: Colors.black.withOpacity(0.2),
               border: InputBorder.none,
             ),
           ),

@@ -43,7 +43,6 @@ class MovieDetailsPage extends ConsumerWidget {
                           },
                           icon: const Icon(
                             Icons.chevron_left,
-                            color: Colors.black,
                           )),
                     ),
                   ),
@@ -77,7 +76,6 @@ class MovieDetailsPage extends ConsumerWidget {
                           movieDetail.originalTitle,
                           style: const TextStyle(
                               fontSize: 20,
-                              color: Colors.black,
                               fontWeight: FontWeight.bold),
                         ),
                         Padding(
@@ -101,13 +99,11 @@ class MovieDetailsPage extends ConsumerWidget {
                                         const Text(
                                           '⭐ Review',
                                           style: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.black),
+                                              fontSize: 16),
                                         ),
                                         Text('${movieDetail.voteCount}',
                                             style: const TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.black))
+                                                fontSize: 16))
                                       ],
                                     ),
                                     Row(
@@ -118,12 +114,11 @@ class MovieDetailsPage extends ConsumerWidget {
                                       children: [
                                         const Text('🗓️ Release Date',
                                             style: TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.black)),
+                                                fontSize: 16)),
                                         Text(movieDetail.releaseDate,
                                             style: const TextStyle(
                                                 fontSize: 16,
-                                                color: Colors.black))
+                                            ))
                                       ],
                                     ),
                                     const Row(
@@ -135,11 +130,11 @@ class MovieDetailsPage extends ConsumerWidget {
                                         Text('🕛 Duration',
                                             style: TextStyle(
                                                 fontSize: 16,
-                                                color: Colors.black)),
+                                                )),
                                         Text('1hour',
                                             style: TextStyle(
                                                 fontSize: 16,
-                                                color: Colors.black))
+                                                ))
                                       ],
                                     )
                                   ],
@@ -154,7 +149,7 @@ class MovieDetailsPage extends ConsumerWidget {
                             movieDetail.overview,
                             style: const TextStyle(
                                 fontSize: 20,
-                                color: Colors.black,
+
                                 fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -167,7 +162,6 @@ class MovieDetailsPage extends ConsumerWidget {
                               textAlign: TextAlign.start,
                               style: TextStyle(
                                   fontSize: 20,
-                                  color: Colors.black,
                                   fontWeight: FontWeight.bold),
                             ),
                           ),
