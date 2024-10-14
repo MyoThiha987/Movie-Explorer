@@ -258,7 +258,11 @@ class MovieDetailsPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('$error'),
+              Text(
+                '$error',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const SizedBox(height: 16,),
               ElevatedButton(
                   onPressed: () {
                     ref.refresh(fetchMovieDetailsProvider(movie.id));

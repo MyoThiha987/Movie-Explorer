@@ -104,7 +104,12 @@ class SearchMovieListView extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(context.tr('label_general_error')),
+                    Text(context.tr('label_general_error'),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18)),
+                    const SizedBox(
+                      height: 16,
+                    ),
                     ElevatedButton(
                         onPressed: () {
                           pagingController.refresh();
