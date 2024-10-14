@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_architecture/domain/model/movie.dart';
 import 'package:flutter_architecture/feature/providers/fetch_movie_details_provider.dart';
 import 'package:flutter_architecture/feature/providers/home_movie_provider.dart';
-import 'package:flutter_architecture/feature/providers/setting_theme_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
@@ -82,10 +82,9 @@ class MovieDetailsPage extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(12.0),
                               color: Colors.white,
                             ),
-                          )
-                      ),
+                          )),
                       imageUrl:
-                          "https://image.tmdb.org/t/p/original/${movieDetail.backdropPath}",
+                          "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
                       fit: BoxFit.cover,
                       width: MediaQuery.of(context).size.width,
                       height: 230,
@@ -254,10 +253,22 @@ class MovieDetailsPage extends ConsumerWidget {
           ),
         );
       },
-      error: (Object error, _) => Center(
-        child: Text('$error'),
+      error: (error, _) => Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('$error'),
+              ElevatedButton(
+                  onPressed: () {
+                    ref.refresh(fetchMovieDetailsProvider(movie.id));
+                  },
+                  child: Text(context.tr('label_try_again')))
+            ],
+          ),
+        ),
       ),
-      loading: () =>  Container(
+      loading: () => Container(
         color: Theme.of(context).scaffoldBackgroundColor,
         child: const Center(
           child: CircularProgressIndicator(),

@@ -11,7 +11,6 @@ import 'package:go_router/go_router.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:shimmer/shimmer.dart';
 
-
 class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
 
@@ -101,7 +100,7 @@ class SearchMovieListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
         child: PagedGridView<int, Movie>(
-          padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             showNewPageProgressIndicatorAsGridChild: false,
             showNewPageErrorIndicatorAsGridChild: false,
             showNoMoreItemsIndicatorAsGridChild: false,
@@ -118,6 +117,19 @@ class SearchMovieListView extends StatelessWidget {
 
               itemBuilder: (context, item, index) => SearchMovieItemView(
                 movie: item,
+              ),
+              firstPageErrorIndicatorBuilder: (context) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(context.tr('label_general_error')),
+                    ElevatedButton(
+                        onPressed: () {
+                          pagingController.refresh();
+                        },
+                        child: Text(context.tr('label_try_again')))
+                  ],
+                ),
               ),
               firstPageProgressIndicatorBuilder: (_) => const SizedBox(
                   width: 60,
@@ -153,11 +165,11 @@ class SearchMovieItemView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
-        onTap: () {
-          final movieJson = jsonEncode(movie.toJson());
-          GoRouter.of(context)
-              .pushNamed('detail', queryParameters: {'movie': movieJson});
-        },
+      onTap: () {
+        final movieJson = jsonEncode(movie.toJson());
+        GoRouter.of(context)
+            .pushNamed('detail', queryParameters: {'movie': movieJson});
+      },
       child: Column(
         children: [
           Padding(
@@ -169,7 +181,7 @@ class SearchMovieItemView extends ConsumerWidget {
                 children: [
                   CachedNetworkImage(
                     // Helps with smooth rendering
-                    placeholder: (context, url) =>  Shimmer.fromColors(
+                    placeholder: (context, url) => Shimmer.fromColors(
                         baseColor: Colors.grey.shade300,
                         highlightColor: Colors.grey,
                         enabled: true,
@@ -181,8 +193,7 @@ class SearchMovieItemView extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(12.0),
                             color: Colors.white,
                           ),
-                        )
-                    ),
+                        )),
                     imageUrl:
                         "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
                     fit: BoxFit.cover,
@@ -203,7 +214,8 @@ class SearchMovieItemView extends ConsumerWidget {
                           },
                           icon: Icon(
                             Icons.favorite,
-                            color: movie.isFavourite ? Colors.red : Colors.white,
+                            color:
+                                movie.isFavourite ? Colors.red : Colors.white,
                           )),
                     ),
                   )
@@ -215,8 +227,8 @@ class SearchMovieItemView extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.only(left: 12.0, right: 12.0),
               child: Text(
-                style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 movie.originalTitle,
                 maxLines: 1,
               ),
@@ -241,8 +253,7 @@ class MovieSearchBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-      padding:
-          const EdgeInsets.only(left: 16.0, right: 16, top: 16),
+      padding: const EdgeInsets.only(left: 16.0, right: 16, top: 16),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(

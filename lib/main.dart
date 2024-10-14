@@ -6,7 +6,6 @@ import 'package:flutter_architecture/di/di.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
 import 'feature/main_page.dart';
 import 'firebase_options.dart';
 

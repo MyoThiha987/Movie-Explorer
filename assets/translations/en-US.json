@@ -14,6 +14,8 @@
   "lbl_general" : "General",
   "label_language": "Language",
   "label_select_language": "Select a Language",
+  "label_general_error": "Something went wrong!",
+  "label_try_again": "Try again!",
   "label_no_search_data" : "There is no data to show up this time",
   "label_no_favourite_data" : "There is no data to show up this time",
   "english": "English",

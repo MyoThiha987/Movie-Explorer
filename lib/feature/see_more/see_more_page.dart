@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_architecture/feature/providers/see_more_movie_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 import '../../domain/model/movie.dart';
@@ -98,6 +99,19 @@ class SearchMovieListView extends StatelessWidget {
 
               itemBuilder: (context, item, index) => SearchMovieItemView(
                 movie: item,
+              ),
+              firstPageErrorIndicatorBuilder: (context) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(context.tr('label_general_error')),
+                    ElevatedButton(
+                        onPressed: () {
+                          pagingController.refresh();
+                        },
+                        child: Text(context.tr('label_try_again')))
+                  ],
+                ),
               ),
               firstPageProgressIndicatorBuilder: (_) => const SizedBox(
                   width: 60,

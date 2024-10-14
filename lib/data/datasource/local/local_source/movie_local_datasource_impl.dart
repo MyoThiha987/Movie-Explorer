@@ -16,10 +16,8 @@ class MovieLocalDataSourceImpl extends MovieLocalDataSource {
 
   @override
   Stream<List<MovieEntity>> getLocalMovies() async* {
-    final initialMovies =
-        movieBox.values.where((movie) => movie.isFavourite == true).toList();
+    final initialMovies = movieBox.values.toList();
     yield initialMovies..sort((a, b) => a.releaseDate.compareTo(b.releaseDate));
-    ;
 
     final movieChanges = movieBox.watch().map((event) {
       return movieBox.values.toList()
