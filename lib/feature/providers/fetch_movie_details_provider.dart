@@ -6,7 +6,7 @@ import '../../di/di.dart';
 import '../../domain/model/movie.dart';
 import '../../domain/usecase/fetch_movie_details_usecase.dart';
 
-part 'fetch_movie_details_usecase_provider.g.dart';
+part 'fetch_movie_details_provider.g.dart';
 
 @riverpod
 Future<MovieDetails> fetchMovieDetails(ref, int movieId) async {

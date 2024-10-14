@@ -58,6 +58,9 @@ dependencies:
   shared_preferences: ^2.3.2
   google_fonts: ^6.2.1
   easy_localization: ^3.0.7
+  shimmer: ^3.0.0
+  flutter_native_splash: ^2.4.1
+  firebase_core: ^3.6.0
 
 dev_dependencies:
   flutter_test:
@@ -90,7 +93,8 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - images/test.png
+    - images/eng_flag.png
+    - images/mm_flag.png
     - assets/translations/en-US.json
     - assets/translations/my-MM.json
 #     - images/a_dot_ham.jpeg
@@ -120,3 +124,19 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+flutter_native_splash:
+  color: "#ffffff"
+  #image: assets/eng_flag.png
+  branding: assets/eng_flag.png
+  color_dark: "#000000"
+  #image_dark: assets/eng_flag.png
+  branding_dark: assets/eng_flag.png
+
+  android_12:
+    image: assets/eng_flag.png
+    icon_background_color: "#ffffff"
+    image_dark: assets/eng_flag.png
+    icon_background_color_dark: "#000000"
+
+  web: false

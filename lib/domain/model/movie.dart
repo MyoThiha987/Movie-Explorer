@@ -1,6 +1,11 @@
 import 'package:equatable/equatable.dart';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'movie.g.dart';
+
+@JsonSerializable()
 class Movie {
+  String autoId;
   int id;
   String originalTitle;
   String overview;
@@ -14,7 +19,8 @@ class Movie {
   bool isFavourite;
 
   Movie(
-      {required this.id,
+      {required this.autoId,
+      required this.id,
       required this.originalTitle,
       required this.overview,
       required this.popularity,
@@ -25,19 +31,10 @@ class Movie {
       required this.voteCount,
       required this.movieType,
       required this.isFavourite});
-}
 
-class HomeMovies {
-  List<Movie> nowPlayingMovies;
-  List<Movie> topRatedMovies;
-  List<Movie> popularMovies;
-  List<Movie> upcomingMovies;
+  factory Movie.fromJson(Map<String, dynamic> json) => _$MovieFromJson(json);
 
-  HomeMovies(
-      {required this.nowPlayingMovies,
-      required this.topRatedMovies,
-      required this.popularMovies,
-      required this.upcomingMovies});
+  Map<String, dynamic> toJson() => _$MovieToJson(this);
 }
 
 class Failure implements Exception {
@@ -54,6 +51,7 @@ class Failure implements Exception {
 class SearchMovieRequestParams extends Equatable {
   final int page;
   final String query;
+
   const SearchMovieRequestParams({required this.page, required this.query});
 
   @override

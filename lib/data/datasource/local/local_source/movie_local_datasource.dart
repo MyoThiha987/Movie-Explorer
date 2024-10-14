@@ -2,8 +2,9 @@
 import '../enitiy/movie_entity.dart';
 
 abstract class MovieLocalDataSource {
-  List<MovieEntity> getLocalMovies();
-  void insertMovies(List<MovieEntity> movies);
-  void deleteMovies();
-  void updateMovie(int index,MovieEntity movie);
+  Stream<List<MovieEntity>> getLocalMovies();
+  Stream<List<MovieEntity>> getFavouriteMovies();
+  Future<void> insertMovies(List<MovieEntity> movies);
+  Future<void> deleteMovies();
+  Future<void> updateMovie(int index,MovieEntity movie);
 }

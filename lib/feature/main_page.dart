@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_architecture/domain/model/movie.dart';
 import 'package:flutter_architecture/feature/favourite/favourite_page.dart';
 import 'package:flutter_architecture/feature/home/home_page.dart';
-import 'package:flutter_architecture/feature/providers/switch_theme_provider.dart';
+import 'package:flutter_architecture/feature/providers/setting_theme_provider.dart';
 import 'package:flutter_architecture/feature/search/search_page.dart';
+import 'package:flutter_architecture/feature/see_more/see_more_page.dart';
 import 'package:flutter_architecture/feature/settings/setting_page.dart';
 import 'package:flutter_architecture/feature/theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,12 +40,24 @@ class _MainPageState extends ConsumerState<MainPage> {
     initialLocation: '/home',
     routes: <RouteBase>[
       GoRoute(
+          name: "see_more",
+          // The screen to display as the root in the second tab of the
+          // bottom navigation bar.
+          path: '/see_more',
+          builder: (BuildContext context, GoRouterState state) {
+            final movieType = state.uri.queryParameters['movie_type']!;
+            return SeeMorePage(movieType: movieType);
+          }),
+      GoRoute(
           name: "detail",
           // The screen to display as the root in the second tab of the
           // bottom navigation bar.
           path: '/detail',
-          builder: (BuildContext context, GoRouterState state) =>
-              MovieDetailsPage(movieId: state.uri.queryParameters['movieId']!)),
+          builder: (BuildContext context, GoRouterState state) {
+            final movieJson = state.uri.queryParameters['movie'];
+            final movie = Movie.fromJson(jsonDecode(movieJson!));
+            return MovieDetailsPage(movie: movie);
+          }),
       GoRoute(
           name: "search",
           // The screen to display as the root in the second tab of the
@@ -96,16 +112,17 @@ class _MainPageState extends ConsumerState<MainPage> {
     ],
   );
 
-
   @override
   Widget build(BuildContext context) {
-    MaterialTheme theme = MaterialTheme(createTextTheme(context, "Lora", "Lora"));
+    MaterialTheme theme =
+        MaterialTheme(createTextTheme(context, "Lora", "Lora"));
     final themeMode = ref.watch(switchThemeProviderProvider);
     return MaterialApp.router(
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
-      themeAnimationStyle: AnimationStyle(curve: Curves.easeIn,duration: Duration(milliseconds: 300)),
+      themeAnimationStyle: AnimationStyle(
+          curve: Curves.easeIn, duration: Duration(milliseconds: 300)),
       themeMode: themeMode,
       darkTheme: theme.dark(),
       routerConfig: _router,
@@ -135,10 +152,13 @@ class ScaffoldWithNavBar extends StatelessWidget {
             initialLocation: index == navigationShell.currentIndex,
           );
         },
-        destinations:  [
-          NavigationDestination(icon: Icon(Icons.home), label: context.tr('home')),
-          NavigationDestination(icon: Icon(Icons.favorite), label: context.tr('favourite')),
-          NavigationDestination(icon: Icon(Icons.settings), label: context.tr('setting')),
+        destinations: [
+          NavigationDestination(
+              icon: const Icon(Icons.home), label: context.tr('home')),
+          NavigationDestination(
+              icon: const Icon(Icons.favorite), label: context.tr('favourite')),
+          NavigationDestination(
+              icon: const Icon(Icons.settings), label: context.tr('setting')),
         ],
       ),
     );

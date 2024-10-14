@@ -10,7 +10,7 @@ class SearchMoviesUseCase extends BaseUseCase<SearchMovieRequestParams, List<Mov
   SearchMoviesUseCase(this.repository);
 
   @override
-  Future<Resource<List<Movie>>> execute(SearchMovieRequestParams input) {
-    return  repository.searchMovies(input.page, input.query);
+  Future<Resource<List<Movie>>> execute(SearchMovieRequestParams input) async{
+    return  await repository.searchMovies(input.page, input.query);
   }
 }

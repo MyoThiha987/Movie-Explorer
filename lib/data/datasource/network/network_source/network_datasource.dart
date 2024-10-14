@@ -2,11 +2,16 @@ import 'package:flutter_architecture/data/datasource/dto/movie_details_response_
 
 import '../../dto/movie_dto.dart';
 
-abstract class NetworkDatasource{
+abstract class NetworkDatasource {
   Future<List<MovieDto>> getUpComingMovies();
-  Future<List<MovieDto>> getNowPlayingMovies();
-  Future<List<MovieDto>> getTopRatedMovies();
-  Future<List<MovieDto>> getPopularMovies();
+
+  Future<List<MovieDto>> getNowPlayingMovies(int page);
+
+  Future<List<MovieDto>> getTopRatedMovies(int page);
+
+  Future<List<MovieDto>> getPopularMovies(int page);
+
   Future<MovieDetailsResponseDto> getMovieDetails(int movieId);
-  Future<List<MovieDto>> searchMovies(int page,String query);
+
+  Future<List<MovieDto>> searchMovies(int page, String query);
 }

@@ -1,84 +1,164 @@
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:developer';
 
-class FavouritePage extends StatelessWidget {
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dartz/dartz.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_architecture/feature/providers/favourite_movie_provider.dart';
+import 'package:flutter_architecture/feature/providers/home_movie_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
+import '../../domain/model/movie.dart';
+
+class FavouritePage extends ConsumerStatefulWidget {
   const FavouritePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final List<String> imgList = [
-      'https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6ff92caffcdd63681a35134a6770ed3b&auto=format&fit=crop&w=1951&q=80',
-      'https://images.unsplash.com/photo-1522205408450-add114ad53fe?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=368f45b0888aeb0b7b08e3a1084d3ede&auto=format&fit=crop&w=1950&q=80',
-      'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80',
-      'https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=89719a0d55dd05e2deae4120227e6efc&auto=format&fit=crop&w=1953&q=80',
-      'https://images.unsplash.com/photo-1508704019882-f9cf40e475b4?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=8c6e5e3aba713b17aa1fe71ab4f0ae5b&auto=format&fit=crop&w=1352&q=80',
-      'https://images.unsplash.com/photo-1519985176271-adb1088fa94c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=a0c8d632e977f94e5d312d9893258f59&auto=format&fit=crop&w=1355&q=80'
-    ];
+  ConsumerState<FavouritePage> createState() => _FavouritePageState();
+}
 
-    final List<Widget> imageSliders = imgList
-        .map((item) => Container(
-      margin: const EdgeInsets.all(0.0),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 0.0),
-        child: ClipRRect(
-            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-            child: Stack(
-              children: <Widget>[
-                Image.network(item,
-                    fit: BoxFit.cover,
-                    width: MediaQuery.of(context).size.width),
-                Positioned(
-                  bottom: 0.0,
-                  left: 0.0,
-                  right: 0.0,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Color.fromARGB(200, 0, 0, 0),
-                          Color.fromARGB(0, 0, 0, 0)
-                        ],
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
+class _FavouritePageState extends ConsumerState<FavouritePage> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          elevation: 2,
+          title: Text(context.tr('favourite'),
+              style:
+                  const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+        ),
+        body: const MovieGridView());
+  }
+}
+
+class MovieGridView extends ConsumerWidget {
+  const MovieGridView({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favouriteMovies = ref.watch(fetchFavouriteMoviesProvider(unit));
+    return favouriteMovies.when(
+      data: (data) {
+        return data.isEmpty
+            ? Center(child: Text(context.tr('label_no_favourite_data')))
+            : GridView.builder(
+                padding: const EdgeInsets.only(left: 16, right: 16, top: 0),
+                itemCount: data.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    childAspectRatio: 0.72,
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 0,
+                    crossAxisSpacing: 12),
+                itemBuilder: (BuildContext context, int index) {
+                  final movie = data[index];
+                  return GridMovieItemView(
+                    movie: movie,
+                  );
+                },
+              );
+      },
+      error: (error, stackTrace) => Center(
+        child: Text('Error: $error'),
+      ),
+      loading: () => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+}
+
+class GridMovieItemView extends ConsumerWidget {
+  const GridMovieItemView({
+    super.key,
+    required this.movie,
+  });
+
+  final Movie movie;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      onTap: () {
+        final movieJson = jsonEncode(movie.toJson());
+        GoRouter.of(context)
+            .pushNamed('detail', queryParameters: {'movie': movieJson});
+      },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 12),
+            child: Column(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      CachedNetworkImage(
+                        // Helps with smooth rendering
+                        placeholder: (context, url) => Shimmer.fromColors(
+                            baseColor: Colors.grey.shade300,
+                            highlightColor: Colors.grey,
+                            enabled: true,
+                            child: Container(
+                              width: MediaQuery.of(context).size.width,
+                              height: 200.0,
+                              margin: const EdgeInsets.all(0.0),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12.0),
+                                color: Colors.white,
+                              ),
+                            )),
+                        imageUrl:
+                            "https://image.tmdb.org/t/p/original/${movie.posterPath}",
+                        fit: BoxFit.cover,
+                        width: MediaQuery.of(context).size.width,
+                        height: 200,
                       ),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 10.0, horizontal: 20.0),
-                    child: Text(
-                      'No. ${imgList.indexOf(item)} image',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.25),
+                              shape: BoxShape.circle),
+                          child: IconButton(
+                              iconSize: 32,
+                              onPressed: () {
+                                ref.read(favouriteMovieProvider(0, movie));
+                              },
+                              icon: Icon(
+                                Icons.favorite,
+                                color: movie.isFavourite
+                                    ? Colors.red
+                                    : Colors.white,
+                              )),
+                        ),
+                      )
+                    ],
                   ),
                 ),
               ],
-            )),
-      ),
-    ))
-        .toList();
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          CarouselSlider(
-            items: imageSliders,
-            options: CarouselOptions(
-              reverse: false,
-              initialPage: 0,
-              height: 220,
-              enableInfiniteScroll: false,
-              autoPlay: false,
-              aspectRatio: 2.0,
-              viewportFraction: 0.8,
-              enlargeCenterPage: true,
-              pageSnapping: true,
             ),
           ),
-          SizedBox(
-            height: 16,
-          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 12.0, right: 12.0),
+              child: Text(
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                movie.originalTitle,
+                maxLines: 1,
+              ),
+            ),
+          )
         ],
       ),
     );

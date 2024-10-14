@@ -7,3 +7,7 @@ abstract class BaseUseCase<In, Out> {
 abstract class BaseNormalUseCase<In, Out> {
   Future<Out> execute(In input);
 }
+
+abstract class BaseStreamUseCase<In, Out> {
+  Stream<Out> execute(In input);
+}

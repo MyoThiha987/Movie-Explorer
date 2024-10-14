@@ -13,29 +13,27 @@ abstract class MovieService {
 
   @GET('/3/movie/now_playing')
   Future<HttpResponse<MovieResponseDto>> getNowPlayingMovies(
-      @Query("language") String? language, @Query("page") int? page);
+      @Query("page") int? page);
 
   @GET('/3/movie/top_rated')
   Future<HttpResponse<MovieResponseDto>> getTopRateMovies(
-      @Query("language") String? language, @Query("page") int? page);
+      @Query("page") int? page);
 
   @GET('/3/movie/upcoming')
   Future<HttpResponse<MovieResponseDto>> getUpComingMovies(
-      @Query("language") String? language, @Query("page") int? page);
+      @Query("page") int? page);
 
   @GET('/3/movie/popular')
   Future<HttpResponse<MovieResponseDto>> getPopularMovies(
-      @Query("language") String? language, @Query("page") int? page);
+      @Query("page") int? page);
 
   @GET('/3/movie/{id}')
   Future<HttpResponse<MovieDetailsResponseDto>> getMovieDetails(
       @Path("id") int id,
-      @Query("language") String? language,
       @Query("page") int? page);
 
   @GET('/3/search/movie')
   Future<HttpResponse<MovieResponseDto>> searchMovies(
       @Query("query") String? query,
-      @Query("language") String? language,
       @Query("page") int? page);
 }

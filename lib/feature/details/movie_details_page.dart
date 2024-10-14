@@ -1,19 +1,21 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_architecture/feature/providers/fetch_movie_details_usecase_provider.dart';
-import 'package:flutter_blurhash/flutter_blurhash.dart';
+import 'package:flutter_architecture/domain/model/movie.dart';
+import 'package:flutter_architecture/feature/providers/fetch_movie_details_provider.dart';
+import 'package:flutter_architecture/feature/providers/home_movie_provider.dart';
+import 'package:flutter_architecture/feature/providers/setting_theme_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 
 class MovieDetailsPage extends ConsumerWidget {
-  final String movieId;
+  final Movie movie;
 
-  const MovieDetailsPage({super.key, required this.movieId});
+  const MovieDetailsPage({super.key, required this.movie});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final movieDetail =
-        ref.watch(fetchMovieDetailsProvider(int.tryParse(movieId)!));
+    final movieDetail = ref.watch(fetchMovieDetailsProvider(movie.id));
     return movieDetail.when(
       data: (movieDetail) {
         return Scaffold(
@@ -34,8 +36,7 @@ class MovieDetailsPage extends ConsumerWidget {
                     child: Container(
                       decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.4),
-                          shape: BoxShape.circle
-                      ),
+                          shape: BoxShape.circle),
                       child: IconButton(
                           iconSize: 28,
                           onPressed: () {
@@ -46,14 +47,43 @@ class MovieDetailsPage extends ConsumerWidget {
                           )),
                     ),
                   ),
+                  actions: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.25),
+                            shape: BoxShape.circle),
+                        child: IconButton(
+                            iconSize: 32,
+                            onPressed: () {
+                              ref.read(favouriteMovieProvider(0, movie));
+                            },
+                            icon: Icon(
+                              Icons.favorite,
+                              color:
+                                  movie.isFavourite ? Colors.red : Colors.white,
+                            )),
+                      ),
+                    )
+                  ],
                   flexibleSpace: FlexibleSpaceBar(
                     collapseMode: CollapseMode.pin,
                     background: CachedNetworkImage(
-                      /*placeholder: (context, url) => const AspectRatio(
-                        aspectRatio: 1.0,
-                        child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
-                      ),*/
-
+                      placeholder: (context, url) => Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey,
+                          enabled: true,
+                          child: Container(
+                            width: MediaQuery.of(context).size.width,
+                            height: 230.0,
+                            margin: const EdgeInsets.all(0.0),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12.0),
+                              color: Colors.white,
+                            ),
+                          )
+                      ),
                       imageUrl:
                           "https://image.tmdb.org/t/p/original/${movieDetail.backdropPath}",
                       fit: BoxFit.cover,
@@ -75,8 +105,7 @@ class MovieDetailsPage extends ConsumerWidget {
                         Text(
                           movieDetail.originalTitle,
                           style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold),
+                              fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         Padding(
                           padding: const EdgeInsets.all(12),
@@ -98,12 +127,11 @@ class MovieDetailsPage extends ConsumerWidget {
                                       children: [
                                         const Text(
                                           '⭐ Review',
-                                          style: TextStyle(
-                                              fontSize: 16),
+                                          style: TextStyle(fontSize: 16),
                                         ),
                                         Text('${movieDetail.voteCount}',
-                                            style: const TextStyle(
-                                                fontSize: 16))
+                                            style:
+                                                const TextStyle(fontSize: 16))
                                       ],
                                     ),
                                     Row(
@@ -113,11 +141,10 @@ class MovieDetailsPage extends ConsumerWidget {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         const Text('🗓️ Release Date',
-                                            style: TextStyle(
-                                                fontSize: 16)),
+                                            style: TextStyle(fontSize: 16)),
                                         Text(movieDetail.releaseDate,
                                             style: const TextStyle(
-                                                fontSize: 16,
+                                              fontSize: 16,
                                             ))
                                       ],
                                     ),
@@ -129,12 +156,12 @@ class MovieDetailsPage extends ConsumerWidget {
                                       children: [
                                         Text('🕛 Duration',
                                             style: TextStyle(
-                                                fontSize: 16,
-                                                )),
+                                              fontSize: 16,
+                                            )),
                                         Text('1hour',
                                             style: TextStyle(
-                                                fontSize: 16,
-                                                ))
+                                              fontSize: 16,
+                                            ))
                                       ],
                                     )
                                   ],
@@ -148,9 +175,7 @@ class MovieDetailsPage extends ConsumerWidget {
                           child: Text(
                             movieDetail.overview,
                             style: const TextStyle(
-                                fontSize: 20,
-
-                                fontWeight: FontWeight.bold),
+                                fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                         ),
                         SizedBox(
@@ -161,8 +186,7 @@ class MovieDetailsPage extends ConsumerWidget {
                               'Production Companies',
                               textAlign: TextAlign.start,
                               style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold),
+                                  fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -197,8 +221,8 @@ class MovieDetailsPage extends ConsumerWidget {
                                             cacheManager:
                                                 CachedNetworkImageProvider
                                                     .defaultCacheManager,
-                                            imageUrl:"https://image.tmdb.org/t/p/original/${company.logoPath}",
-
+                                            imageUrl:
+                                                "https://image.tmdb.org/t/p/original/${company.logoPath}",
                                             fit: BoxFit.cover,
                                             width: 80,
                                             height: 80,
@@ -233,10 +257,8 @@ class MovieDetailsPage extends ConsumerWidget {
       error: (Object error, _) => Center(
         child: Text('$error'),
       ),
-      loading: () => Container(
-        color: Colors.white,
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
+      loading: () =>  Container(
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: const Center(
           child: CircularProgressIndicator(),
         ),

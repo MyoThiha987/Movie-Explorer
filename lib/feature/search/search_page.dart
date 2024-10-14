@@ -1,16 +1,19 @@
+import 'dart:convert';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_architecture/domain/model/movie.dart';
-import 'package:flutter_architecture/feature/providers/search_movie_usecase_provider.dart';
-import 'package:flutter_blurhash/flutter_blurhash.dart';
+import 'package:flutter_architecture/feature/providers/home_movie_provider.dart';
+import 'package:flutter_architecture/feature/providers/search_movie_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:shimmer/shimmer.dart';
 
-import '../providers/update_search_textfield_provider.dart';
 
 class SearchPage extends ConsumerStatefulWidget {
-  SearchPage({super.key});
+  const SearchPage({super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _SearchPageState();
@@ -33,6 +36,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
     return Scaffold(
       appBar: AppBar(
+        elevation: 2,
         title: Text(context.tr('label_search')),
       ),
       body: Column(
@@ -97,14 +101,15 @@ class SearchMovieListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
         child: PagedGridView<int, Movie>(
+          padding: const EdgeInsets.all(16),
             showNewPageProgressIndicatorAsGridChild: false,
             showNewPageErrorIndicatorAsGridChild: false,
             showNoMoreItemsIndicatorAsGridChild: false,
             pagingController: pagingController,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              // childAspectRatio: 100 / 150,
-              //crossAxisSpacing: 0,
-              //mainAxisSpacing: 50,
+              childAspectRatio: 0.8,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 0,
               crossAxisCount: 2,
             ),
             builderDelegate: PagedChildBuilderDelegate<Movie>(
@@ -127,17 +132,17 @@ class SearchMovieListView extends StatelessWidget {
                   child: Center(
                     child: CircularProgressIndicator(),
                   )),
-              noItemsFoundIndicatorBuilder: (_) => const SizedBox(
+              noItemsFoundIndicatorBuilder: (_) => SizedBox(
                   width: double.infinity,
                   child: Center(
-                    child: Text("There is no data to show up this time"),
+                    child: Text(context.tr('label_no_search_data')),
                   )),
               //noMoreItemsIndicatorBuilder: (_) => NoMoreItemsIndicator(),
             )));
   }
 }
 
-class SearchMovieItemView extends StatelessWidget {
+class SearchMovieItemView extends ConsumerWidget {
   const SearchMovieItemView({
     super.key,
     required this.movie,
@@ -146,39 +151,79 @@ class SearchMovieItemView extends StatelessWidget {
   final Movie movie;
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+        onTap: () {
+          final movieJson = jsonEncode(movie.toJson());
+          GoRouter.of(context)
+              .pushNamed('detail', queryParameters: {'movie': movieJson});
+        },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 0, bottom: 6),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: CachedNetworkImage(
-                fadeInDuration: const Duration(milliseconds: 50),
-                // Helps with smooth rendering
-                fadeOutDuration: const Duration(milliseconds: 50),
-                placeholder: (context, url) => const AspectRatio(
-                  aspectRatio: 1.2,
-                  child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
-                ),
-                imageUrl:
-                    "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
-                fit: BoxFit.cover,
-                width: MediaQuery.of(context).size.width,
-                height: 100,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  CachedNetworkImage(
+                    // Helps with smooth rendering
+                    placeholder: (context, url) =>  Shimmer.fromColors(
+                        baseColor: Colors.grey.shade300,
+                        highlightColor: Colors.grey,
+                        enabled: true,
+                        child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: 190.0,
+                          margin: const EdgeInsets.all(0.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12.0),
+                            color: Colors.white,
+                          ),
+                        )
+                    ),
+                    imageUrl:
+                        "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
+                    fit: BoxFit.cover,
+                    width: MediaQuery.of(context).size.width,
+                    height: 190,
+                  ),
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.25),
+                          shape: BoxShape.circle),
+                      child: IconButton(
+                          iconSize: 32,
+                          onPressed: () {
+                            ref.read(favouriteMovieProvider(0, movie));
+                          },
+                          icon: Icon(
+                            Icons.favorite,
+                            color: movie.isFavourite ? Colors.red : Colors.white,
+                          )),
+                    ),
+                  )
+                ],
               ),
             ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 12.0, right: 12.0),
-          child: Text(
-            movie.originalTitle,
-            maxLines: 1,
-          ),
-        )
-      ],
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 12.0, right: 12.0),
+              child: Text(
+                style: const TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.bold),
+                movie.originalTitle,
+                maxLines: 1,
+              ),
+            ),
+          )
+        ],
+      ),
     );
   }
 }
@@ -196,7 +241,8 @@ class MovieSearchBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding:
+          const EdgeInsets.only(left: 16.0, right: 16, top: 16),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(

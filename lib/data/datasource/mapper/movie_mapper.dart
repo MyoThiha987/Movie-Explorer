@@ -8,6 +8,7 @@ import 'package:flutter_architecture/domain/model/movie_details.dart';
 extension Movies on MovieDto {
   Movie toDomain(int movieType) {
     return Movie(
+        autoId: "-1",
         id: id.orZero(),
         originalTitle: original_title.orEmpty(),
         overview: overview.orEmpty(),
@@ -25,6 +26,25 @@ extension Movies on MovieDto {
 extension MovieModel on MovieEntity {
   Movie toDomain() {
     return Movie(
+        autoId: autoId,
+        id: id,
+        originalTitle: originalTitle,
+        overview: overview,
+        popularity: popularity,
+        releaseDate: releaseDate,
+        posterPath: posterPath,
+        backdropPath: backdropPath,
+        voteAverage: voteAverage,
+        voteCount: voteCount,
+        movieType: movieType,
+        isFavourite: isFavourite);
+  }
+}
+
+extension MovieEntityExt on Movie {
+  MovieEntity toEntity() {
+    return MovieEntity(
+        autoId: "$id$movieType",
         id: id,
         originalTitle: originalTitle,
         overview: overview,
@@ -42,6 +62,7 @@ extension MovieModel on MovieEntity {
 extension MovieLocalEntity on MovieDto {
   MovieEntity toEntity(int movieType) {
     return MovieEntity(
+        autoId: "${id.orZero()}${movieType.orZero()}",
         id: id.orZero(),
         originalTitle: original_title.orEmpty(),
         overview: overview.orEmpty(),

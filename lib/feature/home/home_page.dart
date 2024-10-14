@@ -1,91 +1,57 @@
+import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_options.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dartz/dartz.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_architecture/feature/providers/fetch_local_movies_usecase_provider.dart';
-import 'package:flutter_architecture/feature/providers/switch_theme_provider.dart';
-import 'package:flutter_architecture/feature/providers/sync_movie_usecase_provider.dart';
-import 'package:flutter_blurhash/flutter_blurhash.dart';
+import 'package:flutter_architecture/feature/providers/home_movie_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../domain/model/movie.dart';
 
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final moviesAsyncValue = ref.watch(fetchPopularMoviesProvider(unit));
-    final localMoviesAsyncValue = ref.watch((fetchLocalMoviesProvider(unit)));
-    final theme = ref.watch(switchThemeProviderProvider);
+  ConsumerState<ConsumerStatefulWidget> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    ref.read(syncHomeMoviesProvider(unit));
+  }
+
+  @override
+  Widget build(BuildContext contextX) {
+    final moviesAsyncValue = ref.watch(fetchHomeMoviesProvider(unit));
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.tr('title'),
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: CircleAvatar(
-              radius: 20,
-              child: IconButton(
-                iconSize: 24,
-                onPressed: () {
-                  final themeMode = theme == ThemeMode.light
-                      ? ThemeMode.dark
-                      : ThemeMode.light;
-                  ref
-                      .read(switchThemeProviderProvider.notifier)
-                      .updateThemeMode(themeMode);
-                },
-                icon: const Icon(Icons.light_mode),
+        appBar: AppBar(
+          elevation: 2,
+          title: Text(context.tr('title'),
+              style:
+                  const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: CircleAvatar(
+                radius: 20,
+                child: IconButton(
+                    iconSize: 24,
+                    onPressed: () {
+                      GoRouter.of(context).pushNamed('search');
+                    },
+                    icon: const Icon(Icons.search)),
               ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: CircleAvatar(
-              radius: 20,
-              child: IconButton(
-                  iconSize: 24,
-                  onPressed: () {
-                    GoRouter.of(context).pushNamed('search');
-                  },
-                  icon: const Icon(Icons.search)),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: CircleAvatar(
-              radius: 20,
-              child: IconButton(
-                  iconSize: 24,
-                  onPressed: () {
-                    context.locale.languageCode == "en"
-                        ? context.setLocale(const Locale('my', 'MM'))
-                        : context.setLocale(const Locale('en', 'US'));
-                  },
-                  icon: const Icon(Icons.language)),
-            ),
-          )
-        ],
-      ),
-      body: moviesAsyncValue.when(data: (isSuccess) {
-        return movieListView(context, isSuccess, localMoviesAsyncValue.value);
-      }, error: (error, _) {
-        return movieListView(context, false, localMoviesAsyncValue.value);
-        /*return Center(
-              child: Text('$error'),
-            );*/
-      }, loading: () {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      }),
-    );
+            )
+          ],
+        ),
+        body: movieListView(context, moviesAsyncValue));
   }
 }
 
@@ -100,12 +66,19 @@ List<Widget> carouselView(BuildContext context, List<Movie> movies) {
                 child: Stack(
                   children: <Widget>[
                     CachedNetworkImage(
-                      fadeOutDuration: const Duration(seconds: 0),
-                      fadeInDuration: const Duration(seconds: 0),
-                      placeholder: (context, url) => const AspectRatio(
-                        aspectRatio: 1,
-                        child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
-                      ),
+                      placeholder: (context, url) => Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey,
+                          enabled: true,
+                          child: Container(
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.height / 3.5,
+                            margin: const EdgeInsets.all(0.0),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12.0),
+                              color: Colors.white,
+                            ),
+                          )),
                       imageUrl:
                           "https://image.tmdb.org/t/p/original/${movie.posterPath}",
                       fit: BoxFit.cover,
@@ -117,28 +90,52 @@ List<Widget> carouselView(BuildContext context, List<Movie> movies) {
       .toList();
 }
 
-Widget movieListView(BuildContext context, bool isSuccess, HomeMovies? movies) {
+Widget movieListView(BuildContext context, AsyncValue<List<Movie>> movie) {
   return SingleChildScrollView(
-    child: Column(
-      children: [
-        carouselMovieView(context, movies?.upcomingMovies ?? []),
-        const SizedBox(
-          height: 16,
-        ),
-        nowPlayingMoviesView(context, movies?.nowPlayingMovies ?? [],
-            context.tr('label_now_playing_movies')),
-        topRatedMoviesView(context, movies?.topRatedMovies ?? [],
-            context.tr('label_top_rate_movies')),
-        popularMoviesView(context, movies?.popularMovies ?? [],
-            context.tr('label_popular_movies'))
-      ],
-    ),
-  );
+      child: Column(
+    children: [
+      movie.when(
+          data: (data) {
+            return Column(
+              children: [
+                carouselMovieView(context,
+                    data.where((movie) => movie.movieType == 0).toList()),
+                nowPlayingMoviesView(
+                    context,
+                    data.where((movie) => movie.movieType == 1).toList(),
+                    context.tr('label_now_playing_movies')),
+                topRatedMoviesView(
+                    context,
+                    data.where((movie) => movie.movieType == 2).toList(),
+                    context.tr('label_top_rate_movies')),
+                popularMoviesView(
+                    context,
+                    data.where((movie) => movie.movieType == 3).toList(),
+                    context.tr('label_popular_movies'))
+              ],
+            );
+          },
+          error: (error, _) => Center(
+                child: Text('$error'),
+              ),
+          loading: () {
+            return const SizedBox.shrink();
+          }),
+      movie.isLoading
+          ? SizedBox(
+              height: MediaQuery.of(context).size.height * 2 / 3,
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            )
+          : const SizedBox.shrink()
+    ],
+  ));
 }
 
 Widget carouselMovieView(BuildContext context, List<Movie> movies) {
   return Padding(
-    padding: EdgeInsets.only(top: 12),
+    padding: const EdgeInsets.only(top: 12),
     child: CarouselSlider(
       items: carouselView(context, movies),
       options: CarouselOptions(
@@ -169,7 +166,7 @@ Widget nowPlayingMoviesView(
           padding: const EdgeInsets.all(12),
           child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: Text(
@@ -178,9 +175,15 @@ Widget nowPlayingMoviesView(
                         fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
-                Text(context.tr('label_view_all'),
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16))
+                GestureDetector(
+                  onTap: () {
+                    GoRouter.of(context).pushNamed('see_more',
+                        queryParameters: {'movie_type': "1"});
+                  },
+                  child: Text(context.tr('label_view_all'),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 14)),
+                )
               ]),
         ),
         SizedBox(
@@ -191,7 +194,7 @@ Widget nowPlayingMoviesView(
             itemCount: movies.length,
             itemBuilder: (context, index) {
               final movie = movies[index];
-              return smallMovieItemView(context, movie);
+              return SmallMovieItemView(movie: movie);
             },
           ),
         )
@@ -212,7 +215,7 @@ Widget topRatedMoviesView(
           padding: const EdgeInsets.all(12),
           child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: Text(
@@ -221,9 +224,15 @@ Widget topRatedMoviesView(
                         fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
-                Text(context.tr('label_view_all'),
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16))
+                GestureDetector(
+                  onTap: () {
+                    GoRouter.of(context).pushNamed('see_more',
+                        queryParameters: {'movie_type': "2"});
+                  },
+                  child: Text(context.tr('label_view_all'),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 14)),
+                )
               ]),
         ),
         SizedBox(
@@ -234,7 +243,7 @@ Widget topRatedMoviesView(
             itemCount: movies.length,
             itemBuilder: (context, index) {
               final movie = movies[index];
-              return largeMovieItemView(context, movie);
+              return LargeMovieItemView(movie: movie);
             },
           ),
         )
@@ -255,7 +264,7 @@ Widget popularMoviesView(
           padding: const EdgeInsets.all(12),
           child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: Text(
@@ -264,9 +273,15 @@ Widget popularMoviesView(
                         fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
-                Text(context.tr('label_view_all'),
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16)),
+                GestureDetector(
+                  onTap: () {
+                    GoRouter.of(context).pushNamed('see_more',
+                        queryParameters: {'movie_type': "3"});
+                  },
+                  child: Text(context.tr('label_view_all'),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 14)),
+                ),
               ]),
         ),
         SizedBox(
@@ -277,7 +292,7 @@ Widget popularMoviesView(
             itemCount: movies.length,
             itemBuilder: (context, index) {
               final movie = movies[index];
-              return mediumMovieItemView(context, movie);
+              return MediumMovieItemView(movie: movie);
             },
           ),
         )
@@ -286,162 +301,253 @@ Widget popularMoviesView(
   );
 }
 
-Widget smallMovieItemView(BuildContext context, Movie movie) {
-  return GestureDetector(
-    onTap: () {
-      GoRouter.of(context).pushNamed('detail',
-          queryParameters: {'movieId': movie.id.toString()});
-    },
-    child: Container(
-      width: MediaQuery.of(context).size.width / 2,
-      padding: const EdgeInsets.only(right: 12),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: CachedNetworkImage(
-                  placeholder: (context, url) => const AspectRatio(
-                    aspectRatio: 1.6,
-                    child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
-                  ),
-                  imageUrl:
-                      "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
-                  fit: BoxFit.cover,
-                  width: MediaQuery.of(context).size.width,
-                  height: 200,
-                ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              Expanded(
-                child: Text(
-                  movie.originalTitle,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-          Positioned(
-            right: 8,
-            top: 8,
-            child: Container(
-              decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.25),
-                  shape: BoxShape.circle),
-              child: IconButton(
-                  iconSize: 32,
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.favorite,
-                    color: Colors.white,
-                  )),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
+class SmallMovieItemView extends ConsumerWidget {
+  final Movie movie;
 
-Widget largeMovieItemView(BuildContext context, Movie movie) {
-  return GestureDetector(
-    onTap: () {
-      GoRouter.of(context).pushNamed('detail',
-          queryParameters: {'movieId': movie.id.toString()});
-    },
-    child: Container(
-      width: MediaQuery.of(context).size.width / 1.02,
-      padding: const EdgeInsets.only(right: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: CachedNetworkImage(
-              placeholder: (context, url) => const AspectRatio(
-                aspectRatio: 1.6,
-                child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
-              ),
-              imageUrl:
-                  "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: 200,
-            ),
-          ),
-          const SizedBox(
-            height: 12,
-          ),
-          Expanded(
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: Text(
-                textAlign: TextAlign.center,
-                movie.originalTitle,
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
+  const SmallMovieItemView({super.key, required this.movie});
 
-Widget mediumMovieItemView(BuildContext context, Movie movie) {
-  return GestureDetector(
-    onTap: () {
-      GoRouter.of(context).pushNamed('detail',
-          queryParameters: {'movieId': movie.id.toString()});
-    },
-    child: Container(
-      width: MediaQuery.of(context).size.width / 1.5,
-      padding: const EdgeInsets.only(right: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: CachedNetworkImage(
-              placeholder: (context, url) => const AspectRatio(
-                aspectRatio: 1.6,
-                child: BlurHash(hash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj'),
-              ),
-              imageUrl:
-                  "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
-              fit: BoxFit.cover,
-              width: MediaQuery.of(context).size.width,
-              height: 200,
-            ),
-          ),
-          const SizedBox(
-            height: 12,
-          ),
-          Expanded(
-            child: Text(
-              movie.originalTitle,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-class CustomImageCache extends WidgetsFlutterBinding {
   @override
-  ImageCache createImageCache() {
-    ImageCache imageCache = super.createImageCache();
-    // Set your image cache size
-    imageCache.maximumSizeBytes = 1024 * 1024 * 100; // 100 MB
-    return imageCache;
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      onTap: () {
+        final movieJson = jsonEncode(movie.toJson());
+        GoRouter.of(context)
+            .pushNamed('detail', queryParameters: {'movie': movieJson});
+      },
+      child: Container(
+        width: MediaQuery.of(context).size.width / 2,
+        padding: const EdgeInsets.only(right: 12),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: CachedNetworkImage(
+                    placeholder: (context, url) => Shimmer.fromColors(
+                        baseColor: Colors.grey.shade300,
+                        highlightColor: Colors.grey,
+                        enabled: true,
+                        child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: 200.0,
+                          margin: const EdgeInsets.all(0.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12.0),
+                            color: Colors.white,
+                          ),
+                        )),
+                    imageUrl:
+                        "https://image.tmdb.org/t/p/original/${movie.posterPath}",
+                    fit: BoxFit.cover,
+                    width: MediaQuery.of(context).size.width,
+                    height: 200,
+                  ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                Expanded(
+                  child: Text(
+                    textAlign: TextAlign.center,
+                    movie.originalTitle,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Container(
+                decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.25),
+                    shape: BoxShape.circle),
+                child: IconButton(
+                    iconSize: 32,
+                    onPressed: () {
+                      ref.read(favouriteMovieProvider(0, movie));
+                    },
+                    icon: Icon(
+                      Icons.favorite,
+                      color: movie.isFavourite ? Colors.red : Colors.white,
+                    )),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class LargeMovieItemView extends ConsumerWidget {
+  final Movie movie;
+
+  const LargeMovieItemView({super.key, required this.movie});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      onTap: () {
+        final movieJson = jsonEncode(movie.toJson());
+        GoRouter.of(context)
+            .pushNamed('detail', queryParameters: {'movie': movieJson});
+      },
+      child: Container(
+        width: MediaQuery.of(context).size.width / 1.02,
+        padding: const EdgeInsets.only(right: 12),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: CachedNetworkImage(
+                    placeholder: (context, url) => Shimmer.fromColors(
+                        baseColor: Colors.grey.shade300,
+                        highlightColor: Colors.grey,
+                        enabled: true,
+                        child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: 200.0,
+                          margin: const EdgeInsets.all(0.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12.0),
+                            color: Colors.white,
+                          ),
+                        )),
+                    imageUrl:
+                        "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: 200,
+                  ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                Expanded(
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: Text(
+                      textAlign: TextAlign.center,
+                      movie.originalTitle,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Container(
+                decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.25),
+                    shape: BoxShape.circle),
+                child: IconButton(
+                    iconSize: 32,
+                    onPressed: () {
+                      ref.read(favouriteMovieProvider(0, movie));
+                    },
+                    icon: Icon(
+                      Icons.favorite,
+                      color: movie.isFavourite ? Colors.red : Colors.white,
+                    )),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class MediumMovieItemView extends ConsumerWidget {
+  final Movie movie;
+
+  const MediumMovieItemView({super.key, required this.movie});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      onTap: () {
+        final movieJson = jsonEncode(movie.toJson());
+        GoRouter.of(context)
+            .pushNamed('detail', queryParameters: {'movie': movieJson});
+      },
+      child: Container(
+        width: MediaQuery.of(context).size.width / 1.5,
+        padding: const EdgeInsets.only(right: 12),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: CachedNetworkImage(
+                    placeholder: (context, url) => Shimmer.fromColors(
+                        baseColor: Colors.grey.shade300,
+                        highlightColor: Colors.grey,
+                        enabled: true,
+                        child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: 200.0,
+                          margin: const EdgeInsets.all(0.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12.0),
+                            color: Colors.white,
+                          ),
+                        )),
+                    imageUrl:
+                        "https://image.tmdb.org/t/p/original/${movie.backdropPath}",
+                    fit: BoxFit.cover,
+                    width: MediaQuery.of(context).size.width,
+                    height: 200,
+                  ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                Expanded(
+                  child: Text(
+                    movie.originalTitle,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              right: 8,
+              top: 8,
+              child: Container(
+                decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.25),
+                    shape: BoxShape.circle),
+                child: IconButton(
+                    iconSize: 32,
+                    onPressed: () {
+                      ref.read(favouriteMovieProvider(0, movie));
+                    },
+                    icon: Icon(
+                      Icons.favorite,
+                      color: movie.isFavourite ? Colors.red : Colors.white,
+                    )),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
   }
 }
